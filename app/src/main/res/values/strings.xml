@@ -1,0 +1,14 @@
+<resources>
+    <string name="app_name">タイムキーパー</string>
+    <string name="_00_00">00:00</string>
+    <string name="start">スタート</string>
+    <string name="reset">リセット</string>
+    <string name="first_bell">1鈴</string>
+    <string name="second_bell">2鈴</string>
+    <string name="minute_desc2">分前</string>
+    <string name="length">設定時間</string>
+    <string name="minute_desc">分</string>
+    <string name="set">セット</string>
+
+
+</resources>
