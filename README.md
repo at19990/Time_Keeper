@@ -1,6 +1,7 @@
+
 # タイムキーパー (Androidアプリ)  
 
-
+<img src="https://user-images.githubusercontent.com/16556629/64978540-ba3fba00-d8f0-11e9-881f-3c6d644a58e5.png" width="100px">
 
 <img src="https://user-images.githubusercontent.com/16556629/64977173-dc840880-d8ed-11e9-8626-7b3e2a9d0ac3.JPG" width="320px">
 
