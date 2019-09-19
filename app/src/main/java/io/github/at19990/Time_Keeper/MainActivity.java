@@ -1,5 +1,6 @@
 package io.github.at19990.Time_Keeper;
 
+import android.graphics.Color;
 import android.os.CountDownTimer;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
@@ -43,13 +44,19 @@ public class MainActivity extends AppCompatActivity {
     private CountDownTimer mCountDownTimer_first;
     private CountDownTimer mCountDownTimer_second;
 
+    private TextView mTimerText;
+
     private boolean mTimerRunning;
 
     private long mTimeLeftInMillis = START_TIME_IN_MILLIS;
 
-    private double time_length;
-    private double first_bell = 5;  // 初期設定: 5分前
-    private double second_bell = 3; // 初期設定: 3分前
+    private double time_length; // 初期設定: 10分
+    private double first_bell;  // 初期設定: 5分前
+    private double second_bell; // 初期設定: 3分前
+
+    private double stored_time_length = 10;
+    private double stored_first_bell = 5;
+    private double stored_second_bell = 3;
 
 
     @Override
@@ -68,6 +75,7 @@ public class MainActivity extends AppCompatActivity {
         mButtonReset = findViewById(R.id.buttonreset);
         mButtonSet = findViewById(R.id.button_set);
         mView = findViewById(R.id.view);
+        mTimerText = findViewById(R.id.text_view_countdown);
 
         errorMessage = "値が無効です";
 
@@ -94,6 +102,7 @@ public class MainActivity extends AppCompatActivity {
                 /* セットボタンを押すとキーボードを格納 */
                 InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
                 inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
+                mTimerText.setTextColor(Color.BLACK);
 
                 /* テキストフォームに入力されているか判定 */
                 if((TextUtils.isEmpty(set_time.getText().toString())) || (TextUtils.isEmpty(firstbell_time.getText().toString())) || (TextUtils.isEmpty(secondbell_time.getText().toString()))){
@@ -115,6 +124,12 @@ public class MainActivity extends AppCompatActivity {
                     /* 不正な入力値を検出 */
                     if((second_bell < first_bell) && (first_bell < time_length) && (second_bell > 0)){
                         mTimeLeftInMillis = (long)time_length * 60 * 1000;
+
+
+                        stored_time_length = time_length;
+                        stored_first_bell = first_bell;
+                        stored_second_bell = second_bell;
+
                         updateCountDownText();
                     }else{
                         toastMake(errorMessage, 0, 500);
@@ -132,6 +147,7 @@ public class MainActivity extends AppCompatActivity {
                 if (mTimerRunning){
                     pauseTimer();
                 } else {
+
                     startTimer();
                 }
             }
@@ -183,7 +199,9 @@ public class MainActivity extends AppCompatActivity {
                 mCountDownTimer_second.cancel();
 
                 mButtonStartPause.setText("スタート");
-                mButtonReset.setVisibility(View.VISIBLE);    // 非表示
+                mButtonReset.setVisibility(View.VISIBLE);    // 表示
+
+                mTimerText.setTextColor(Color.BLACK);
             }
         }.start();
 
@@ -198,6 +216,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onFinish() {
                     soundPool.play(bell_1, 1.0f, 1.0f, 1, 0, 1);
+
                 }
             }.start();
         }
@@ -214,6 +233,7 @@ public class MainActivity extends AppCompatActivity {
                 @Override
                 public void onFinish() {
                     soundPool.play(bell_2, 1.0f, 1.0f, 1, 0, 1);
+                    mTimerText.setTextColor(Color.RED);
                 }
             }.start();
         }
@@ -221,7 +241,7 @@ public class MainActivity extends AppCompatActivity {
 
         mTimerRunning = true;   // タイマー作動中
         mButtonStartPause.setText("一時停止");
-        mButtonReset.setVisibility(View.VISIBLE);
+        mButtonReset.setVisibility(View.INVISIBLE);
     }
 
 
@@ -249,16 +269,17 @@ public class MainActivity extends AppCompatActivity {
 
 
     private void resetTimer(){
-        mTimeLeftInMillis = START_TIME_IN_MILLIS;
+        time_length = stored_time_length;
+        mTimeLeftInMillis = (long)time_length * 1000 * 60;
 
-        first_bell = 5;
-        second_bell = 3;
+        first_bell = stored_first_bell;
+        second_bell = stored_second_bell;
 
         updateCountDownText();
         mButtonStartPause.setVisibility(View.VISIBLE);
         mButtonReset.setVisibility(View.INVISIBLE);
 
-
+        mTimerText.setTextColor(Color.BLACK);
     }
 
     // タイマー表示
