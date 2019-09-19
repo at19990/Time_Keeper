@@ -15,6 +15,7 @@ import android.view.inputmethod.InputMethodManager;
 import android.content.Context;
 import java.util.Locale;
 
+
 public class MainActivity extends AppCompatActivity {
     private static long START_TIME_IN_MILLIS = 10* 60 * 1000;   //タイマー設定 単位 ミリ秒   final 変更できない設定値
 
@@ -36,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
     private String errorMessage;
 
-    private EditText setted_time;
+    private EditText set_time;
     private EditText firstbell_time;
     private EditText secondbell_time;
 
@@ -67,7 +68,7 @@ public class MainActivity extends AppCompatActivity {
 
         mTextViewCountDown = findViewById(R.id.text_view_countdown);
 
-        setted_time = findViewById(R.id.setted_time_value);
+        set_time = findViewById(R.id.setted_time_value);
         firstbell_time = findViewById(R.id.setted_firstbell_value);
         secondbell_time = findViewById(R.id.setted_secondbell_value);
 
@@ -107,18 +108,18 @@ public class MainActivity extends AppCompatActivity {
                 InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
                 inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 
-                if((TextUtils.isEmpty(setted_time.getText().toString())) || (TextUtils.isEmpty(firstbell_time.getText().toString())) || (TextUtils.isEmpty(secondbell_time.getText().toString()))){
+                if((TextUtils.isEmpty(set_time.getText().toString())) || (TextUtils.isEmpty(firstbell_time.getText().toString())) || (TextUtils.isEmpty(secondbell_time.getText().toString()))){
                     toastMake(errorMessage, 0, 500);
                 }else{
-                    time_length = Double.parseDouble(setted_time.getText().toString());
+                    time_length = Double.parseDouble(set_time.getText().toString());
                     first_bell = Double.parseDouble(firstbell_time.getText().toString());
                     second_bell = Double.parseDouble(secondbell_time.getText().toString());
 
-                    setted_time.clearFocus();
+                    set_time.clearFocus();
                     firstbell_time.clearFocus();
                     secondbell_time.clearFocus();
 
-                    setted_time.setCursorVisible(false);
+                    set_time.setCursorVisible(false);
                     firstbell_time.setCursorVisible(false);
                     secondbell_time.setCursorVisible(false);
 
