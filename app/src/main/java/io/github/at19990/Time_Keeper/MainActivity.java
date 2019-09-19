@@ -17,9 +17,9 @@ import java.util.Locale;
 
 
 public class MainActivity extends AppCompatActivity {
-    private static long START_TIME_IN_MILLIS = 10* 60 * 1000;   //タイマー設定 単位 ミリ秒   final 変更できない設定値
+    private static long START_TIME_IN_MILLIS = 10 * 60 * 1000;   //タイマー設定 単位 ミリ秒 初期設定: 10分
 
-    private TextView mTextViewCountDown;  //アクセス修飾子
+    private TextView mTextViewCountDown;
     private Button mButtonStartPause;
     private Button mButtonReset;
     private Button mButtonSet;
@@ -27,13 +27,11 @@ public class MainActivity extends AppCompatActivity {
     private View mView;
 
     private  SoundPool soundPool;
-    /*
-    private int bell_0;
-    */
+
+
     private int bell_1;
     private int bell_2;
     private int bell_3;
-
 
     private String errorMessage;
 
@@ -41,24 +39,17 @@ public class MainActivity extends AppCompatActivity {
     private EditText firstbell_time;
     private EditText secondbell_time;
 
+    private CountDownTimer mCountDownTimer;
+    private CountDownTimer mCountDownTimer_first;
+    private CountDownTimer mCountDownTimer_second;
 
-
-    private CountDownTimer mCountDownTimer;   // OS内の CountDownTimerクラス
-    private CountDownTimer mCountDownTimer_first;   // OS内の CountDownTimerクラス
-    private CountDownTimer mCountDownTimer_second;   // OS内の CountDownTimerクラス
-
-    private boolean mTimerRunning;   // OS内の CallTimeクラス
+    private boolean mTimerRunning;
 
     private long mTimeLeftInMillis = START_TIME_IN_MILLIS;
 
-    /*
-    private long mTimeFirstBell;
-    private long mTimeSecondBell;
-    */
-
     private double time_length;
-    private double first_bell = 5;
-    private double second_bell = 3;
+    private double first_bell = 5;  // 初期設定: 5分前
+    private double second_bell = 3; // 初期設定: 3分前
 
 
     @Override
@@ -68,9 +59,9 @@ public class MainActivity extends AppCompatActivity {
 
         mTextViewCountDown = findViewById(R.id.text_view_countdown);
 
-        set_time = findViewById(R.id.setted_time_value);
-        firstbell_time = findViewById(R.id.setted_firstbell_value);
-        secondbell_time = findViewById(R.id.setted_secondbell_value);
+        set_time = findViewById(R.id.set_time_value);
+        firstbell_time = findViewById(R.id.set_firstbell_value);
+        secondbell_time = findViewById(R.id.set_secondbell_value);
 
 
         mButtonStartPause = findViewById(R.id.button_start_pause);
@@ -81,12 +72,8 @@ public class MainActivity extends AppCompatActivity {
         errorMessage = "値が無効です";
 
         AudioAttributes audioAttributes = new AudioAttributes.Builder()
-                // USAGE_MEDIA
-                // USAGE_GAME
-                .setUsage(AudioAttributes.USAGE_GAME)
-                // CONTENT_TYPE_MUSIC
-                // CONTENT_TYPE_SPEECH, etc.
-                .setContentType(AudioAttributes.CONTENT_TYPE_SPEECH)
+                .setUsage(AudioAttributes.USAGE_ALARM)
+                .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
                 .build();
 
         soundPool = new SoundPool.Builder()
@@ -94,9 +81,8 @@ public class MainActivity extends AppCompatActivity {
                 // ストリーム数に応じて
                 .setMaxStreams(3)
                 .build();
-        /*
-        bell_0 = soundPool.load(this, R.raw.bell_0, 1);
-        */
+
+
         bell_1 = soundPool.load(this, R.raw.firstbell, 1);
         bell_2 = soundPool.load(this, R.raw.secondbell, 1);
         bell_3 = soundPool.load(this, R.raw.thirdbell, 1);
@@ -105,16 +91,19 @@ public class MainActivity extends AppCompatActivity {
         mButtonSet.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                /* セットボタンを押すとキーボードを格納 */
                 InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
                 inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 
+                /* テキストフォームに入力されているか判定 */
                 if((TextUtils.isEmpty(set_time.getText().toString())) || (TextUtils.isEmpty(firstbell_time.getText().toString())) || (TextUtils.isEmpty(secondbell_time.getText().toString()))){
-                    toastMake(errorMessage, 0, 500);
+                    toastMake(errorMessage, 0, 500);  // 無効な入力の警告
                 }else{
                     time_length = Double.parseDouble(set_time.getText().toString());
                     first_bell = Double.parseDouble(firstbell_time.getText().toString());
                     second_bell = Double.parseDouble(secondbell_time.getText().toString());
 
+                    /* 入力フォームの強調・カーソル表示を解除 */
                     set_time.clearFocus();
                     firstbell_time.clearFocus();
                     secondbell_time.clearFocus();
@@ -123,14 +112,9 @@ public class MainActivity extends AppCompatActivity {
                     firstbell_time.setCursorVisible(false);
                     secondbell_time.setCursorVisible(false);
 
-
+                    /* 不正な入力値を検出 */
                     if((second_bell < first_bell) && (first_bell < time_length) && (second_bell > 0)){
                         mTimeLeftInMillis = (long)time_length * 60 * 1000;
-                        /*
-                        mTimeFirstBell = mTimeLeftInMillis - (long)first_bell * 60 * 1000;
-                        mTimeSecondBell = mTimeLeftInMillis - (long)second_bell * 60 * 1000;
-                        */
-
                         updateCountDownText();
                     }else{
                         toastMake(errorMessage, 0, 500);
@@ -141,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        /* スタート・ストップボタンの動作定義 */
         mButtonStartPause.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -152,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        /* リセットボタンの動作定義 */
         mButtonReset.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
@@ -160,28 +146,26 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-
+        /* フォーム・ボタン以外の部分をタッチしたときの動作定義 */
         mView.setOnClickListener(new View.OnClickListener(){
             @Override
             public void onClick(View v) {
                 mView.requestFocus();
 
+                /* キーボード格納 */
                 InputMethodManager inputMethodManager = (InputMethodManager)getSystemService(Context.INPUT_METHOD_SERVICE);
                 inputMethodManager.hideSoftInputFromWindow(v.getWindowToken(), InputMethodManager.HIDE_NOT_ALWAYS);
 
             }
         });
 
-
-
         updateCountDownText();
-
-
 
     }
 
+
     private void startTimer(){
-        mCountDownTimer = new CountDownTimer(mTimeLeftInMillis,100) {
+        mCountDownTimer = new CountDownTimer(mTimeLeftInMillis,100) {  // 100ミリ秒単位でカウント
             @Override
             public void onTick(long millisUntilFinished) {
                 mTimeLeftInMillis = millisUntilFinished;
@@ -194,14 +178,16 @@ public class MainActivity extends AppCompatActivity {
             public void onFinish() {
                 mTimerRunning = false;
                 soundPool.play(bell_3, 1.0f, 1.0f, 1, 0, 1);
+                /* 1鈴と2鈴のカウントを終了 */
                 mCountDownTimer_first.cancel();
                 mCountDownTimer_second.cancel();
+
                 mButtonStartPause.setText("スタート");
-                mButtonReset.setVisibility(View.VISIBLE);    //非表示
+                mButtonReset.setVisibility(View.VISIBLE);    // 非表示
             }
         }.start();
 
-
+        /* 1鈴のカウント */
         if((mTimeLeftInMillis - (long)first_bell * 60 * 1000) >= 0){
             mCountDownTimer_first = new CountDownTimer(mTimeLeftInMillis - (long)first_bell * 60 * 1000,100) {
                 @Override
@@ -216,6 +202,7 @@ public class MainActivity extends AppCompatActivity {
             }.start();
         }
 
+        /* 2鈴のカウント */
         if((mTimeLeftInMillis - (long)second_bell * 60* 1000) >= 0){
             mCountDownTimer_second = new CountDownTimer(mTimeLeftInMillis - (long)second_bell * 60 * 1000,100) {
                 @Override
@@ -232,20 +219,14 @@ public class MainActivity extends AppCompatActivity {
         }
 
 
-
-
-
-
-
-
         mTimerRunning = true;   // タイマー作動中
         mButtonStartPause.setText("一時停止");
         mButtonReset.setVisibility(View.VISIBLE);
     }
 
+
     private void toastMake(String message, int x, int y){
         Toast toast = Toast.makeText(this, message, Toast.LENGTH_LONG);
-        // 位置調整
         toast.setGravity(android.view.Gravity.CENTER, x, y);
         toast.show();
     }
@@ -253,8 +234,6 @@ public class MainActivity extends AppCompatActivity {
     private void pauseTimer(){
 
         mTimerRunning = false;
-
-
 
         mCountDownTimer.cancel();
 
@@ -267,6 +246,7 @@ public class MainActivity extends AppCompatActivity {
         mButtonStartPause.setText("スタート");
         mButtonReset.setVisibility(View.VISIBLE);
     }
+
 
     private void resetTimer(){
         mTimeLeftInMillis = START_TIME_IN_MILLIS;
